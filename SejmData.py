@@ -241,7 +241,12 @@ def get_decoded_response(url):
             response = urllib.request.urlopen(url)
 
             # Decode it with response's charset (probably utf-8)
-            response_decoded = response.read().decode(response.headers.get_content_charset())
+            if response.headers.get_content_charset() is None:
+                charset = "utf-8"
+            else:
+                charset = response.headers.get_content_charset()
+
+            response_decoded = response.read().decode(charset)
 
             # Convert HTML codes to polish characters
             response_polish = unescape(response_decoded)
@@ -267,6 +272,7 @@ def get_vote_day_urls(n_office_term):
     # Search for vote day IDs
     # ID creation is wildly inconsistent so we get them this way
     vote_day_urls = []
+    print(response)
     matches = re.findall(r"<TR><TD.*?<A HREF=\"agent.xsp\?symbol=listaglos&IdDnia=(.*?)\"(?:.*?)</TD></TR>", response)
     if len(matches) > 0:
         for match in matches:
@@ -906,26 +912,23 @@ def process_data(all_data):
 
 
 def main():
-    if os.path.exists("Sejm") is False:
-        os.mkdir("Sejm")
+    if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Download")) is False:
+        os.mkdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Download"))
 
-    if os.path.exists(os.path.join("Sejm", "Download")) is False:
-        os.mkdir(os.path.join("Sejm", "Download"))
-
-    if os.path.exists(os.path.join("Sejm", "Database")) is False:
-        os.mkdir(os.path.join("Sejm", "Database"))
+    if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Database")) is False:
+        os.mkdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Database"))
 
     # Parse initial arguments
     parser = argparse.ArgumentParser(description="Polish Sejm Vote Downloader and Analyzer")
-    parser.add_argument("--download", default=False, help="A boolean defining whether to download all pdfs", type=bool)
-    parser.add_argument("--write", default=False, help="A boolean defining whether to write to database", type=bool)
+    parser.add_argument("--download", default=True, help="A boolean defining whether to download all pdfs", type=bool)
+    parser.add_argument("--write", default=True, help="A boolean defining whether to write to database", type=bool)
     parser.add_argument("--read", default=True, help="A boolean defining whether to read the database", type=bool)
     parser.add_argument("--n_office_term", default=9, help="Office term number", type=int)
     parser.add_argument("--overwrite_votes", default=False, help="A boolean defining whether downloaded vote pdf's should overwrite existing ones", type=bool)
     parser.add_argument("--download_session_lower", default=1, help="Lower range bound of sessions to be downloaded", type=int)
     parser.add_argument("--download_session_higher", default=5000, help="Higher range bound of sessions to be downloaded", type=int)
-    parser.add_argument("--download_path", default=os.path.join("Sejm", "Download"), help="Path to download directory", type=str)
-    parser.add_argument("--database_path", default=os.path.join("Sejm", "Database"), help="Path to database directory", type=str)
+    parser.add_argument("--download_path", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "Download"), help="Path to download directory", type=str)
+    parser.add_argument("--database_path", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "Database"), help="Path to database directory", type=str)
     args = parser.parse_args()
 
     if args.download == True:
