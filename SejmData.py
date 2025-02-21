@@ -238,7 +238,13 @@ def get_decoded_response(url):
     while responded == False:
         try:
             # Get the response
-            response = urllib.request.urlopen(url)
+            headers = {
+            "Accept": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+
+            req = urllib.request.Request(url, headers=headers)
+            response = urllib.request.urlopen(req)
 
             # Decode it with response's charset (probably utf-8)
             if response.headers.get_content_charset() is None:
@@ -278,6 +284,8 @@ def get_vote_day_urls(n_office_term):
         for match in matches:
             vote_day_urls.append("https://www.sejm.gov.pl/Sejm" + str(n_office_term) + ".nsf/agent.xsp?symbol=listaglos&IdDnia=" + match)
 
+        print(vote_day_urls)
+        time.sleep(6000000000)
         return vote_day_urls
     # If no IDs are found, we exit and reevaluate our life choices
     else:
